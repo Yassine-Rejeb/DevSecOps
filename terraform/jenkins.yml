@@ -1,0 +1,85 @@
+---
+- name: Configure Jenkins VM
+  hosts: remote_jenkins
+  tasks:
+    - name: Setting jenkins repo
+      get_url:
+        url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+        dest: /etc/yum.repos.d/jenkins.repo
+    - name: Adding the repo key
+      rpm_key:
+        state: present
+        key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+    - name: Updating Everything
+      yum:
+        name: "*"
+        state: latest
+    - name: "Installing java-openjdk11"
+      command: sudo amazon-linux-extras install java-openjdk11 -y
+    - name: Installing Jenkins
+      yum: 
+        name: jenkins
+        state: present
+    - name: Enable and start jenkins
+      service:
+        name: jenkins
+        state: started
+        enabled: yes
+    - name: Daemon-reload
+      systemd:
+        daemon_reload: yes
+    - command: "sudo cat /var/lib/jenkins/secrets/initialAdminPassword"
+      register: adminPass
+    - name: Get the temporary adminPass
+      debug:
+        var: adminPass
+    - name: Create Directory init groovy
+      file:
+        path: /var/lib/jenkins/init.groovy.d/
+        state: directory
+        owner: jenkins
+        group: jenkins
+    - name: Copy the init script
+      copy:
+        src: 1_init.groovy
+        dest: /var/lib/jenkins/init.groovy.d/1_init.groovy
+        owner: jenkins
+        group: jenkins
+    - name: get the public IP of jenkins
+      command: "terraform -chdir=terraform output -raw jenkins_public_ip"
+      register: jenkins_ip
+      delegate_to: localhost
+    - name: change the jenkins url in the groovy conf file
+      lineinfile:
+        path: ./1_init.groovy
+        regexp: '^def jenkinsUrl = "http://"'
+        line: 'def jenkinsUrl = "http://{{jenkins_ip.stdout}}:8080"'
+      delegate_to: localhost
+    - name: change the jenkinsUrl in the locationconf file
+      lineinfile:
+        path: ./jenkins.model.JenkinsLocationConfiguration.xml
+        regexp: "<jenkinsUrl>"
+        line: "<jenkinsUrl>http://{{jenkins_ip.stdout}}:8080/</jenkinsUrl>"
+      delegate_to: localhost
+    - name: copy the init script
+      copy:
+        src: 1_init.groovy
+        dest: /var/lib/jenkins/init.groovy.d/1_init.groovy
+        owner: jenkins
+        group: jenkins
+    - name: copy the users script
+      copy:
+        src: 2_userCreation.groovy
+        dest: /var/lib/jenkins/init.groovy.d/2_userCreation.groovy
+        owner: jenkins
+        group: jenkins
+    - name: copy the location conf file
+      copy:
+        src: ./jenkins.model.JenkinsLocationConfiguration.xml
+        dest: /var/lib/jenkins/
+        owner: jenkins
+        group: jenkins
+    - name: Restart Jenkins to apply the init
+      service: 
+        name: jenkins
+        state: restarted
