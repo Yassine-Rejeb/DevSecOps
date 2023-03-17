@@ -16,13 +16,10 @@ for (user in users) {
   hudsonRealm.createAccount(user['username'], user['password'])
   def u = instance.getUser(user['username'])
   u.setFullName(user['fullName'])
-  u.addProperty(new hudson.tasks.Mailer.UserProperty(user['email']))
+  //u.setEmail(new hudson.tasks.Mailer.UserProperty(user['email']))
   u.save()
 }
+// Bypass the initial setup
+def setupWizard = instance.getSetupWizard()
+setupWizard.completeSetup()
 
-// Optional: Add the users to a specific Jenkins group
-def group = instance.getAuthorizationStrategy().getOrCreateGroup('project-group')
-for (user in users) {
-  group.add(instance.getUser(user['username']))
-}
-group.save()
