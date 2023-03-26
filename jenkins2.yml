@@ -1,0 +1,13 @@
+- name: Prepare the prod node
+  hosts: prod
+  tasks:
+    - name: install java on the prod
+      command: "sudo amazon-linux-extras install java-openjdk11 -y"
+    - name: get the prod public key
+      command: "cat .prod.publicKey"
+      register: publicKey
+      delegate_to: localhost
+    - name: authorize the public key
+      lineinfile:
+        line: "{{publicKey.stdout}}"
+        path: /home/ec2-user/.ssh/authorized_keys

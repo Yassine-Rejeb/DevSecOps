@@ -2,6 +2,7 @@
 - name: Configure Jenkins VM
   hosts: remote_jenkins
   tasks:
+    # Installing Jenkins
     - name: Setting jenkins repo
       get_url:
         url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
@@ -32,16 +33,17 @@
       register: adminPass
     - name: Get the temporary adminPass
       debug:
-        var: adminPass
-    - name: Create Directory init groovy
+        var: adminPass 
+    # Setting Up jenkins
+    - name: Create Directory init.groovy.d
       file:
         path: /var/lib/jenkins/init.groovy.d/
         state: directory
         owner: jenkins
         group: jenkins
-    - name: Copy the init script
+    - name: Copy the jenkins init script
       copy:
-        src: 1_init.groovy
+        src: files/1_init.groovy
         dest: /var/lib/jenkins/init.groovy.d/1_init.groovy
         owner: jenkins
         group: jenkins
@@ -49,37 +51,110 @@
       command: "terraform -chdir=terraform output -raw jenkins_public_ip"
       register: jenkins_ip
       delegate_to: localhost
-    - name: change the jenkins url in the groovy conf file
-      lineinfile:
-        path: ./1_init.groovy
-        regexp: '^def jenkinsUrl = "http://"'
-        line: 'def jenkinsUrl = "http://{{jenkins_ip.stdout}}:8080"'
-      delegate_to: localhost
+      #- name: change the jenkins host in the groovy addNode file
+      #lineinfile:
+      #  path: files/3_addNode.groovy
+      #  regexp: '\"host\",'
+      #  line: '"{{jenkins_ip.stdout}}",'
+      #delegate_to: localhost
     - name: change the jenkinsUrl in the locationconf file
       lineinfile:
-        path: ./jenkins.model.JenkinsLocationConfiguration.xml
+        path: files/jenkins.model.JenkinsLocationConfiguration.xml
         regexp: "<jenkinsUrl>"
         line: "<jenkinsUrl>http://{{jenkins_ip.stdout}}:8080/</jenkinsUrl>"
       delegate_to: localhost
+      #<numExecutors>0</numExecutors>
+    - name: "Turn the number of executors on the Built-in node to 0" 
+      lineinfile:
+        path: /var/lib/jenkins/config.xml
+        regexp: "<numExecutors>"
+        line: "<numExecutors>0</numExecutors>"
     - name: copy the init script
       copy:
-        src: 1_init.groovy
+        src: files/1_init.groovy
         dest: /var/lib/jenkins/init.groovy.d/1_init.groovy
         owner: jenkins
         group: jenkins
     - name: copy the users script
       copy:
-        src: 2_userCreation.groovy
+        src: files/2_userCreation.groovy
         dest: /var/lib/jenkins/init.groovy.d/2_userCreation.groovy
         owner: jenkins
         group: jenkins
+        #- name: copy the addNode script
+        #copy:
+        #src: files/3_addNode.groovy
+        #dest: /var/lib/jenkins/init.groovy.d/3_addNode.groovy
+        #owner: jenkins
+        #group: jenkins
     - name: copy the location conf file
       copy:
-        src: ./jenkins.model.JenkinsLocationConfiguration.xml
+        src: files/jenkins.model.JenkinsLocationConfiguration.xml
         dest: /var/lib/jenkins/
         owner: jenkins
         group: jenkins
-    - name: Restart Jenkins to apply the init
-      service: 
-        name: jenkins
-        state: restarted
+    - name: make sure to get the privat eIP of the prod node
+      command: "terraform -chdir=terraform output -raw prod_private_ip"
+      register: prod_private_ip
+      delegate_to: localhost
+    - name: update the prod node files with the private IP
+      lineinfile:
+        path: files/nodes/Node1/config.xml
+        regexp: "<host>"
+        line: "<host>{{ prod_private_ip.stdout }}</host>"
+      delegate_to: localhost
+    - name: copy the node definition files
+      copy:
+        src: files/nodes
+        dest: /var/lib/jenkins/
+        owner: jenkins
+        group: jenkins
+    - name: Create a new ssh key pair
+      openssh_keypair:
+        path: /home/ec2-user/.ssh/agent
+        type: rsa
+        size: 2048
+    - name: Get the private key
+      command: "cat /home/ec2-user/.ssh/agent"
+      register: privateKey
+    - name: Get the public key
+      command: "cat /home/ec2-user/.ssh/agent.pub"
+      register: publicKey
+    - name: save publicKey
+      copy:
+        content: "{{publicKey.stdout}}"
+        dest: ./.prod.publicKey
+      delegate_to: localhost
+    - name: save privateKey
+      copy:
+        content: |
+          "{{privateKey.stdout}}"
+        dest: ./.prod.privateKey
+      delegate_to: localhost
+    - debug: 
+        var: privateKey
+    - name: Replace multi-line string variable in Groovy file
+      replace:
+        path: files/3_createCred.groovy
+        after: 'def privateKey = """'
+        regexp: "^"
+        before: '"""\\n'
+        replace: |
+          '{{privateKey.stdout}}'
+      delegate_to: localhost
+    - name: Copy the createCred groovy script
+      copy:
+        src: files/3_createCred.groovy
+        dest: /var/lib/jenkins/init.groovy.d/
+        owner: jenkins
+        group: jenkins
+    - name: change ownership of ssh private key
+      file:
+        path: /home/ec2-user/.ssh/agent
+        owner: ec2-user
+        group: ec2-user
+    - name: change ownership of ssh public key
+      file:
+        path: /home/ec2-user/.ssh/agent.pub
+        owner: ec2-user
+        group: ec2-user

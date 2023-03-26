@@ -1,0 +1,8 @@
+---
+- name: Restart jenkins
+  hosts: jenkins
+  tasks:
+    - name: Restart Jenkins to apply the init
+      service:
+        name: jenkins
+        state: restarted
