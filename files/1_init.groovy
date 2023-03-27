@@ -6,7 +6,7 @@ import jenkins.security.s2m.AdminWhitelistRule
 def installed = false
 def initialized = false
 
-jenkins_plugins="ant build-timeout credentials-binding email-ext gradle workflow-aggregator ssh-slaves subversion timestamper ws-cleanup"
+jenkins_plugins="ant build-timeout credentials-binding email-ext gradle workflow-aggregator ssh-slaves subversion timestamper ws-cleanup matrix-auth"
 
 def pluginParameter="${jenkins_plugins}"
 def plugins = pluginParameter.split()
