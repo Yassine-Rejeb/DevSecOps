@@ -100,7 +100,7 @@ resource "aws_instance" "production" {
 
 resource "aws_instance" "jenkins" {
   ami           = "ami-0dfcb1ef8550277af"
-  instance_type = "t2.micro"
+  instance_type = "t2.small"
   key_name = "${aws_key_pair.jenkins-key.key_name}"
   vpc_security_group_ids = [aws_security_group.sg_devsecops.id]
   //provisioner local-exec {

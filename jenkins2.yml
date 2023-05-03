@@ -20,7 +20,7 @@
       cron:
         name: Run agent
         minute: "*"
-        job: 'nohup java -jar /home/ec2-user/agent.jar -jnlpUrl http://{{jenkins_ip.stdout}}:8080/manage/computer/node1/jenkins-agent.jnlp -secret {{slave_secret.stdout}} -workDir "/home/ec2-user" -internalDir "null" > /dev/null 2>&1 &'
+        job: 'nohup /usr/lib/jvm/java-11-openjdk-11.0.18.0.10-1.amzn2.0.1.x86_64/bin/java -jar /home/ec2-user/agent.jar -jnlpUrl http://{{jenkins_ip.stdout}}:8080/manage/computer/node1/jenkins-agent.jnlp -secret {{slave_secret.stdout}} -workDir "/home/ec2-user" -internalDir "null" > /dev/null 2>&1 &'
     #- name: Schedule Java command to run in one minute
     #  at:
     #    command: nohup java -jar /home/ec2-user/agent.jar -jnlpUrl http://{{jenkins_ip.stdout}}:8080/manage/computer/node1/jenkins-agent.jnlp -secret {{slave_secret.stdout}} -workDir "/home/ec2-user" -internalDir "null" > /dev/null 2>&1 &

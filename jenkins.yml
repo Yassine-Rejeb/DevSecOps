@@ -11,7 +11,7 @@
     - name: Adding the repo key
       rpm_key:
         state: present
-        key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+        key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
     - name: Updating Everything
       yum:
         name: "*"
