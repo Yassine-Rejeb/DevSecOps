@@ -1,0 +1,25 @@
+- name: Prepare the prod node
+  hosts: prod
+  gather_facts: no 
+  vars_files:
+    - vars/jenkins_vars.yml
+  tasks:
+    - name: Install java on the prod
+      command: "sudo amazon-linux-extras install java-openjdk11 -y"
+    - name: Get the slave_secret
+      command: "cat {{slave_secret_file}}"
+      register: slave_secret
+      delegate_to: localhost
+    - name: Get the jenkins IP
+      command: "terraform -chdir={{terraform_path}} output -raw jenkins_public_ip"
+      register: jenkins_ip
+      delegate_to: localhost
+    - name: Get the agent.jar file
+      get_url:
+        url: "http://{{jenkins_ip.stdout}}:8080/jnlpJars/agent.jar"
+        dest: /home/ec2-user/agent.jar
+    - name: Set up cron job to run jenkins agent
+      cron:
+        name: Run agent
+        minute: "*"
+        job: 'nohup /usr/lib/jvm/java-11-openjdk-11.0.18.0.10-1.amzn2.0.1.x86_64/bin/java -jar /home/ec2-user/agent.jar -jnlpUrl http://{{jenkins_ip.stdout}}:8080/manage/computer/node1/jenkins-agent.jnlp -secret {{slave_secret.stdout}} -workDir "/home/ec2-user" -internalDir "null" > /dev/null 2>&1 &'

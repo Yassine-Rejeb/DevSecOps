@@ -1,0 +1,9 @@
+---
+- init_groovy_script : /root/devsecops/files/1_init.groovy
+- jenkins_model_xml : /root/devsecops/files/jenkins.model.JenkinsLocationConfiguration.xml
+- usercreation_groovy : /root/devsecops/files/2_userCreation.groovy
+- token_groovy : /root/devsecops/files/3_createToken.groovy
+- conf_xml : /root/devsecops/files/conf.xml
+- terraform_path : /root/devsecops/terraform
+- slave_secret_file : /root/devsecops/files/secrets/.slave_secret-node1
+- token_path : /root/devsecops/files/secrets/.token

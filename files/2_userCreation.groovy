@@ -3,6 +3,7 @@ import hudson.security.*
 
 // Define a list of users to create
 def users = [
+  [username: 'M0D4S', password: 'M0D4S', fullName: 'Med Yassine Rejeb', email: 'm0d4s@mail.me'],
   [username: 'chxmxii', password: 'chxmxii', fullName: 'Mouhib Chamsi', email: 'chxmxii@mail.me'],
   [username: 'Iheb', password: 'Iheb', fullName: 'Iheb Mastouri', email: 'iheb@mail.me'],
   [username: 'Ahmed', password: 'Ahmed', fullName: 'Ahmed Brahim', email: 'ahmed@mail.me'],

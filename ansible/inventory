@@ -1,0 +1,4 @@
+[jenkins]
+remote_jenkins
+[prod]
+production_server

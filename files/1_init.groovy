@@ -18,7 +18,7 @@ def uc = instance.getUpdateCenter()
 
 // Create a new security realm with the admin user
 def hudsonRealm = new HudsonPrivateSecurityRealm(false)
-hudsonRealm.createAccount("M0D4S", "MedYassPass")
+hudsonRealm.createAccount("admin", "admin123")
 
 // Set the security realm and authorization strategy for the instance
 instance.setSecurityRealm(hudsonRealm)
