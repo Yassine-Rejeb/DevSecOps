@@ -14,7 +14,7 @@ echo ""
 read -p "To proceed, we need to install the required tools. Would you like to proceed? (y/n): " confirm
 
 if [ "$confirm" = "y" ]; then
-	./setup.sh
+	./setup/setup.sh
 else
 	echo -e "${RED}Skipping..."
 fi

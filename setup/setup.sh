@@ -9,7 +9,6 @@ vault_version="1.13.1"
 if command -v docker-compose &>/dev/null; then
   echo "docker-compose is already installed"
 else
-  sudo yum update
   sudo yum install docker -y
   sudo systemctl start docker
   sudo systemctl enable docker
@@ -25,9 +24,9 @@ if command -v aws &>/dev/null; then
   echo "AWS CLI is already installed"
 else
   # Download AWS CLI
-  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${aws_version}.zip" -o "awscliv2.zip"
-  unzip awscliv2.zip
-  sudo ./aws/install
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${aws_version}.zip" -o "setup/awscliv2.zip"
+  unzip setup/awscliv2.zip
+  sudo ./setup/aws/install
 fi
 
 # Check if Terraform is already installed
@@ -35,9 +34,9 @@ if command -v terraform &>/dev/null; then
   echo "Terraform is already installed"
 else
   # Download Terraform
-  curl "https://releases.hashicorp.com/terraform/${terraform_version}/terraform_${terraform_version}_linux_amd64.zip" -o "terraform.zip"
-  unzip terraform.zip
-  sudo mv terraform /usr/local/bin/
+  curl "https://releases.hashicorp.com/terraform/${terraform_version}/terraform_${terraform_version}_linux_amd64.zip" -o "setup/terraform.zip"
+  unzip setup/terraform.zip
+  sudo mv setup/terraform /usr/local/bin/
 fi
 
 # Check if Ansible is already installed
@@ -54,9 +53,9 @@ if command -v vault &>/dev/null; then
   echo "Vault is already installed"
 else
   # Download Vault
-  curl "https://releases.hashicorp.com/vault/${vault_version}/vault_${vault_version}_linux_amd64.zip" -o "vault.zip"
-  unzip vault.zip
-  sudo mv vault /usr/local/bin/
+  curl "https://releases.hashicorp.com/vault/${vault_version}/vault_${vault_version}_linux_amd64.zip" -o "setup/vault.zip"
+  unzip setup/vault.zip
+  sudo mv setup/vault /usr/local/bin/
 fi
 
 # Verify installation
