@@ -1,10 +1,24 @@
 #!/bin/bash
 
 # Set versions for tools
-aws_version="2.2.47"
-terraform_version="1.0.2"
+aws_version="2.9.23"
+terraform_version="1.4.5"
 ansible_version="latest"
-vault_version="1.8.3"
+vault_version="1.13.1"
+
+if command -v docker-compose &>/dev/null; then
+  echo "docker-compose is already installed"
+else
+  sudo yum update
+  sudo yum install docker -y
+  sudo systemctl start docker
+  sudo systemctl enable docker
+  sudo docker run hello-world
+  sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+  docker-compose --version
+  sudo systemctl start docker.service
+fi
 
 # Check if AWS CLI is already installed
 if command -v aws &>/dev/null; then
@@ -50,3 +64,4 @@ aws --version
 terraform --version
 ansible --version
 vault --version
+docker-compose --version

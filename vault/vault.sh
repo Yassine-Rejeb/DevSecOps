@@ -1,43 +1,19 @@
 #!/bin/bash
 
-# Create Vault configuration file
-sudo mkdir /etc/vault
-sudo cat <<EOF > /etc/vault/config.hcl
+sudo cat <<EOF > $HOME/devsecops/vault/volumes/config/config.hcl
 storage "file" {
-  path = "/var/lib/vault/data"
+  path    = "/vault/file"
 }
 
 listener "tcp" {
-  address = "127.0.0.1:8200"
-  tls_disable = 1
+  address     = "127.0.0.1:8200"
+  tls_disable = "true"
 }
+
+api_addr = "http://127.0.0.1:8200"
+cluster_addr = "https://127.0.0.1:8201"
+ui = true
 EOF
 
-# Create Vault service file
-sudo cat <<EOF > /etc/systemd/system/vault.service
-[Unit]
-Description=Vault service
-Requires=network-online.target
-After=network-online.target
-
-[Service]
-User=vault
-Group=vault
-ExecStart=/usr/local/bin/vault server -config=/etc/vault/config.hcl
-ExecReload=/usr/local/bin/kill --signal HUP \$MAINPID
-KillSignal=SIGTERM
-Restart=always
-LimitNOFILE=65536
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Create Vault user and directories
-sudo useradd --system --home /etc/vault --shell /bin/false vault
-sudo mkdir --parents /var/lib/vault/data
-sudo chown --recursive vault:vault /etc/vault /var/lib/vault
-
-# Enable and start Vault service
-sudo systemctl enable vault.service
-sudo systemctl start vault.service
+cd $HOME/devsecops/vault
+docker-compose up
